@@ -339,7 +339,7 @@ def trianglePoints(x, z, h, w):
     return [[x, 0, h + z], [x, -w / 2, z], [x, w / 2, z]]
 
 
-def triangle(x, z, h, w, t):
+def triangle(x, z, h, w, t, legID, params, rotation):
     """
     Takes the geometric parameters of the triangle and the current time, gives the joint angles to draw the triangle with the tip of th leg. Format : [theta1, theta2, theta3]
     """
@@ -354,7 +354,11 @@ def triangle(x, z, h, w, t):
     T = math.fmod(t, 1)
     pos = P2 * T + (1 - T) * P1
 
-    return computeIK(pos[0], pos[1], pos[2])
+    new_pose = rotaton_2D(pos[0], pos[1], pos[2], rotation)
+
+    # return computeIK(pos[0], pos[1], -pos[2])
+    return computeIKOriented(new_pose[0], new_pose[1], -new_pose[2], legID, params)
+    # return [pos[0], pos[1], -pos[2]]
 
 
 def circlePoints(x, z, r, N=16):
