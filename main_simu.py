@@ -52,6 +52,43 @@ def main():
     for m in robot.motors():
         print(m)
     # Defining the shutdown function here so it has visibility over the robot variable
+    
+    def tourner(x,z,h,w,direction):
+        alphas1 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
+        alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 3, params, direction)
+
+        utils.setAnglesToLeg(alphas1, robot.legs[1])
+        utils.setAnglesToLeg(alphas2, robot.legs[2])
+        utils.setAnglesToLeg(alphas1, robot.legs[3])
+        utils.setAnglesToLeg(alphas2, robot.legs[4])
+        utils.setAnglesToLeg(alphas1, robot.legs[5])
+        utils.setAnglesToLeg(alphas2, robot.legs[6])
+
+    def avancer(x,z,h,w,direction):
+        alphas1 = kinematics.triangle(-x,z,h,w,time.time(), 1, params, direction)
+        alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)
+        alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
+        alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction)
+        alphas5 = kinematics.triangle(-x,z,h,w,time.time(), 5, params, direction)
+        alphas6 = kinematics.triangle(-x,z,h,w,time.time()+1.5, 6, params, direction)
+
+        utils.setAnglesToLeg(alphas1, robot.legs[1])
+        utils.setAnglesToLeg(alphas2, robot.legs[2])
+        utils.setAnglesToLeg(alphas3, robot.legs[3])
+        utils.setAnglesToLeg(alphas4, robot.legs[4])
+        utils.setAnglesToLeg(alphas5, robot.legs[5])
+        utils.setAnglesToLeg(alphas6, robot.legs[6])
+
+    def circle(x, z, r):
+        alphas = kinematics.circle(x, z,    r, time.time(), 3)
+
+        utils.setAnglesToLeg(alphas, robot.legs[1])
+        utils.setAnglesToLeg(alphas, robot.legs[2])
+        utils.setAnglesToLeg(alphas, robot.legs[3])
+        utils.setAnglesToLeg(alphas, robot.legs[4])
+        utils.setAnglesToLeg(alphas, robot.legs[5])
+        utils.setAnglesToLeg(alphas, robot.legs[6])
+
     def shutdown(signal_received, frame):
         # Handle any cleanup here
         print("SIGINT or CTRL-C detected. Setting motors to compliant and exiting")
@@ -82,38 +119,16 @@ def main():
             yaw = robot_pose[1][2]
             sim.lookAt(robot_pose[0])
             
-            x=30
-            z=0
-            w=100
-            h=100
-            direction= 0
+            x=0
+            z=80
+            w=80
+            h=80
+            direction= math.pi / 2
 
-            alphas1 = kinematics.triangle(x,z,h,w,time.time(), 1, params, direction)
-            alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)
-            alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
-            alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction)
-            alphas5 = kinematics.triangle(x,z,h,w,time.time(), 5, params, direction)
-            alphas6 = kinematics.triangle(x,z,h,w,time.time()+1.5, 6, params, direction)
-
-            # alphas = kinematics.computeIK(180,0,-120)
-            # alphas = [0,0,0]
+            avancer(x,z,h,w,direction)            
+            # tourner(x,z,h,w,direction)            
+            # circle(x,z,20)    
             
-            # robot.legs[1][0].goal_position = math.degrees(alphas[0])
-            # robot.legs[1][1].goal_position = math.degrees(alphas[1])
-            # robot.legs[1][2].goal_position = math.degrees(alphas[2])
-
-
-            # utils.setPositionToLeg(180,0,-120,robot.legs[1])
-
-            utils.setAnglesToLeg(alphas1, robot.legs[1])
-            utils.setAnglesToLeg(alphas2, robot.legs[2])
-            utils.setAnglesToLeg(alphas3, robot.legs[3])
-            utils.setAnglesToLeg(alphas4, robot.legs[4])
-            utils.setAnglesToLeg(alphas5, robot.legs[5])
-            utils.setAnglesToLeg(alphas6, robot.legs[6])
-
-            # sim.setRobotPose([0, 0, 0.5], to_pybullet_quaternion(0, 0, 0))
-
             if first_move :
                 robot.smooth_tick_read_and_write(3)
                 first_move = False
