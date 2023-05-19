@@ -82,11 +82,11 @@ def main():
             yaw = robot_pose[1][2]
             sim.lookAt(robot_pose[0])
             
-            x=0
+            x=30
             z=0
             w=100
             h=100
-            direction= math.pi / 2
+            direction= 0
 
             alphas1 = kinematics.triangle(x,z,h,w,time.time(), 1, params, direction)
             alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)

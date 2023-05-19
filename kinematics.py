@@ -355,8 +355,8 @@ def triangle(x, z, h, w, t, legID, params, rotation):
     pos = P2 * T + (1 - T) * P1
 
     # return computeIK(pos[0], pos[1], -pos[2])
-    return computeIKOriented(pos[0], pos[1], pos[2], legID, params, extra_theta=rotation)
-    # return [pos[0], pos[1], -pos[2]]
+    return computeIKOriented(pos[0], pos[1], -pos[2], legID, params, extra_theta=rotation)
+    #! retirer le - devant pose[2] pour les test en réel
 
 
 def circlePoints(x, z, r, N=16):
