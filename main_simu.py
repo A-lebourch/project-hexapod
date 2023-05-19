@@ -85,15 +85,15 @@ def main():
             x=0
             z=0
             w=100
-            h=30
+            h=100
+            direction= math.pi / 2
 
-
-            alphas1 = kinematics.triangle(x,z,h,w,time.time(), 1, params, math.pi / 2)
-            alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, math.pi / 2)
-            alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, math.pi / 2)
-            alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, math.pi / 2)
-            alphas5 = kinematics.triangle(x,z,h,w,time.time(), 5, params, math.pi / 2)
-            alphas6 = kinematics.triangle(x,z,h,w,time.time()+1.5, 6, params, math.pi / 2)
+            alphas1 = kinematics.triangle(x,z,h,w,time.time(), 1, params, direction)
+            alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)
+            alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
+            alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction)
+            alphas5 = kinematics.triangle(x,z,h,w,time.time(), 5, params, direction)
+            alphas6 = kinematics.triangle(x,z,h,w,time.time()+1.5, 6, params, direction)
 
             # alphas = kinematics.computeIK(180,0,-120)
             # alphas = [0,0,0]
