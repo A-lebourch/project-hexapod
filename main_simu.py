@@ -1,4 +1,5 @@
 import sys
+from utils import *
 from signal import signal, SIGINT
 import traceback
 import pybullet as p
@@ -9,12 +10,13 @@ import argparse
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--mode", "-m", type=str, default="direct", help="test")
+parser.add_argument("--mode", "-m", type=str, default="arrow", help="test")
 args = parser.parse_args()
 
 first_move = True
 robotPath = "phantomx_description/urdf/phantomx.urdf"
 sim = Simulation(robotPath, gui=True, panels=True, useUrdfInertia=False)
+#? sim.setFloorFrictions(lateral=0, spinning=0, rolling=0)
 
 sim.setRobotPose([0, 0, 0.5], [0, 0, 0, 1])
 
@@ -23,7 +25,7 @@ params = Parameters(
     freq=50,
     speed=1,
     z=-110,
-    travelDistancePerStep=80,
+    travelDistancePerStep=80,   
     lateralDistance=130,
     frontDistance=87,
     frontStart=32,
@@ -49,6 +51,7 @@ try:
     robot.smooth_tick_read_and_write(3, verbose=False)
     print("Init position reached")
     keep_going = True
+    toto = [0,0]
     while keep_going:
 
         robot_pose = (
@@ -57,19 +60,26 @@ try:
         yaw = robot_pose[1][2]
         sim.lookAt(robot_pose[0])
         
-        if args.mode == "direct":
+        if args.mode == "arrow":
 
             x=0
-            y=0
             z=0
             w=100
             h=30
             direction = math.pi / 2
-            direction2 = -(math.pi) 
-            direction3 =  math.pi 
 
             keys = p.getKeyboardEvents()
-            gestion_handle(keys,sim,robot,x,y,z,params,w,h,direction,direction2,direction3)
+            gestion_handle(keys,robot,x,z,h,w,params,direction,args.mode)
+
+        if args.mode == "body":
+            x=0
+            z=0
+            w=100
+            h=30
+            direction = math.pi / 2
+            keys = p.getKeyboardEvents()
+            test = gestion_handle(keys,robot,x,z,h,w,params,direction,args.mode,toto)
+            setPositionToRobot(test[0],test[1],0,robot,params,0)
 
         #? sim.setRobotPose([0, 0, 0.5], to_pybullet_quaternion(0, 0, 0))
 
