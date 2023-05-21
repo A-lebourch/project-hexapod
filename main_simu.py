@@ -8,18 +8,14 @@ import math
 from robot_move import *
 import argparse
 
-
 parser = argparse.ArgumentParser()
-parser.add_argument("--mode", "-m", type=str, default="arrow", help="test")
+parser.add_argument("--mode", "-m", type=str, default="arrow")
 args = parser.parse_args()
 
-first_move = True
 robotPath = "phantomx_description/urdf/phantomx.urdf"
 sim = Simulation(robotPath, gui=True, panels=True, useUrdfInertia=False)
 #? sim.setFloorFrictions(lateral=0, spinning=0, rolling=0)
-
 sim.setRobotPose([0, 0, 0.5], [0, 0, 0, 1])
-
 robot = SimpleRobotSimulation(sim)
 params = Parameters(
     freq=50,
@@ -35,7 +31,29 @@ robot.params = params
 robot.centerCamera = True
 robot.init()
 robot.enable_torque()
-itr  = 1
+
+up_pressed = False 
+keep_going = True
+toto = [0,0]
+gear = 1
+Z = 0
+sens = "inc"
+x=0
+z=0
+w=100
+h=30
+first_move = True
+
+if args.mode == "DILLIDGAF" or args.mode == "test_pygame":
+    pygame.init()
+    window = pygame.display.set_mode((800, 600))
+    image = pygame.image.load("effortChart.jpg")
+    image_rect = image.get_rect()
+    image_rect.center = (800 // 2, 600 // 2)
+    mouse_down = False
+    mouse_pos = [0,0]
+    window.blit(image, image_rect)
+    pygame.display.update()
 
 def shutdown(signal_received, frame):
     print("SIGINT or CTRL-C detected. Setting motors to compliant and exiting")
@@ -50,8 +68,6 @@ try:
     setPositionToRobot(0, 0, 0, robot, params)
     robot.smooth_tick_read_and_write(3, verbose=False)
     print("Init position reached")
-    keep_going = True
-    toto = [0,0]
     while keep_going:
 
         robot_pose = (
@@ -61,15 +77,28 @@ try:
         sim.lookAt(robot_pose[0])
         
         if args.mode == "arrow":
+            direction = math.pi / 2
+            keys = p.getKeyboardEvents()
+            x,z,h,w,gear=speed(keys,gear)
+            button_press(keys,robot,x,z,h,w,params,direction,args.mode)
+        
+        if args.mode == "DILLIDGAF":
+            mouse_down, mouse_pos = DILLIDGAF(window, image, image_rect,robot, mouse_down, mouse_pos)
 
+        if args.mode == "test_pygame":
+            direction = math.pi / 2
             x=0
             z=0
             w=100
             h=30
-            direction = math.pi / 2
+            up_pressed = test(robot,x,z,h,w,params,direction, up_pressed)
+        
+        if args.mode == "leg":
 
-            keys = p.getKeyboardEvents()
-            gestion_handle(keys,robot,x,z,h,w,params,direction,args.mode)
+            x=200
+            y=0
+            z, sens = increment_decrement(-100, 50, sens, z)
+            setPositionToLeg(200,y,z,robot.legs[1])
 
         if args.mode == "body":
             x=0
@@ -78,7 +107,7 @@ try:
             h=30
             direction = math.pi / 2
             keys = p.getKeyboardEvents()
-            test = gestion_handle(keys,robot,x,z,h,w,params,direction,args.mode,toto)
+            test = button_press(keys,robot,x,z,h,w,params,direction,args.mode,toto)
             setPositionToRobot(test[0],test[1],0,robot,params,0)
 
         #? sim.setRobotPose([0, 0, 0.5], to_pybullet_quaternion(0, 0, 0))
