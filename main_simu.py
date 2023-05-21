@@ -1,147 +1,88 @@
-import utils
-from utils import SimpleRobotSimulation, Parameters, setPositionToRobot
 import sys
 from signal import signal, SIGINT
 import traceback
 import pybullet as p
 from onshape_to_robot.simulation import Simulation
 import math
-import time
-import kinematics
-from scipy.spatial.transform import Rotation
+from robot_move import *
+import argparse
 
 
-def to_pybullet_quaternion(roll, pitch, yaw, degrees=False):
-    # q = Quaternion.from_euler(roll, pitch, yaw, degrees=degrees)
-    # return [q[1], q[2], q[3], q[0]]
+parser = argparse.ArgumentParser()
+parser.add_argument("--mode", "-m", type=str, default="direct", help="test")
+args = parser.parse_args()
 
-    # Create a rotation object from Euler angles specifying axes of rotation
-    rot = Rotation.from_euler("xyz", [roll, pitch, yaw], degrees=degrees)
+first_move = True
+robotPath = "phantomx_description/urdf/phantomx.urdf"
+sim = Simulation(robotPath, gui=True, panels=True, useUrdfInertia=False)
 
-    # Convert to quaternions and print
-    rot_quat = rot.as_quat()
-    # print(rot_quat)
-    return rot_quat
+sim.setRobotPose([0, 0, 0.5], [0, 0, 0, 1])
 
-def main():
-    first_move = True
-    robotPath = "phantomx_description/urdf/phantomx.urdf"
-    sim = Simulation(robotPath, gui=True, panels=True, useUrdfInertia=False)
+robot = SimpleRobotSimulation(sim)
+params = Parameters(
+    freq=50,
+    speed=1,
+    z=-110,
+    travelDistancePerStep=80,
+    lateralDistance=130,
+    frontDistance=87,
+    frontStart=32,
+    method="minJerk",
+)
+robot.params = params
+robot.centerCamera = True
+robot.init()
+robot.enable_torque()
+itr  = 1
+
+def shutdown(signal_received, frame):
+    print("SIGINT or CTRL-C detected. Setting motors to compliant and exiting")
+    robot.disable_torque()
+    print("Done ticking. Exiting.")
+    sys.exit()
+
+signal(SIGINT, shutdown)
+try:
+    print("Setting initial position")
     
-    # Try to play with the friction parameters of the simulator
-    # sim.setFloorFrictions(lateral=0, spinning=0, rolling=0)
-    
-    # Setting the robot's initial position
-    sim.setRobotPose([0, 0, 0.5], [0, 0, 0, 1])
+    setPositionToRobot(0, 0, 0, robot, params)
+    robot.smooth_tick_read_and_write(3, verbose=False)
+    print("Init position reached")
+    keep_going = True
+    while keep_going:
 
-    robot = SimpleRobotSimulation(sim)
-    params = Parameters(
-        freq=50,
-        speed=1,
-        z=-110,
-        travelDistancePerStep=80,
-        lateralDistance=130,
-        frontDistance=87,
-        frontStart=32,
-        method="minJerk",
-    )
-    robot.params = params
-    robot.centerCamera = True
-    robot.init()
-    robot.enable_torque()
-    for m in robot.motors():
-        print(m)
-    # Defining the shutdown function here so it has visibility over the robot variable
-    
-    def tourner(x,z,h,w,direction):
-        alphas1 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
-        alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 3, params, direction)
-
-        utils.setAnglesToLeg(alphas1, robot.legs[1])
-        utils.setAnglesToLeg(alphas2, robot.legs[2])
-        utils.setAnglesToLeg(alphas1, robot.legs[3])
-        utils.setAnglesToLeg(alphas2, robot.legs[4])
-        utils.setAnglesToLeg(alphas1, robot.legs[5])
-        utils.setAnglesToLeg(alphas2, robot.legs[6])
-
-    def avancer(x,z,h,w,direction):
-        alphas1 = kinematics.triangle(-x,z,h,w,time.time(), 1, params, direction)
-        alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)
-        alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
-        alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction)
-        alphas5 = kinematics.triangle(-x,z,h,w,time.time(), 5, params, direction)
-        alphas6 = kinematics.triangle(-x,z,h,w,time.time()+1.5, 6, params, direction)
-
-        utils.setAnglesToLeg(alphas1, robot.legs[1])
-        utils.setAnglesToLeg(alphas2, robot.legs[2])
-        utils.setAnglesToLeg(alphas3, robot.legs[3])
-        utils.setAnglesToLeg(alphas4, robot.legs[4])
-        utils.setAnglesToLeg(alphas5, robot.legs[5])
-        utils.setAnglesToLeg(alphas6, robot.legs[6])
-
-    def circle(x, z, r):
-        alphas = kinematics.circle(x, z,    r, time.time(), 3)
-
-        utils.setAnglesToLeg(alphas, robot.legs[1])
-        utils.setAnglesToLeg(alphas, robot.legs[2])
-        utils.setAnglesToLeg(alphas, robot.legs[3])
-        utils.setAnglesToLeg(alphas, robot.legs[4])
-        utils.setAnglesToLeg(alphas, robot.legs[5])
-        utils.setAnglesToLeg(alphas, robot.legs[6])
-
-    def shutdown(signal_received, frame):
-        # Handle any cleanup here
-        print("SIGINT or CTRL-C detected. Setting motors to compliant and exiting")
-        robot.disable_torque()
-        print("Done ticking. Exiting.")
-        sys.exit()
-        # Brutal exit
-        # os._exit(1)
-
-    # Tell Python to run the shutdown() function when SIGINT is recieved
-    signal(SIGINT, shutdown)
-    try:
-        print("Setting initial position")
+        robot_pose = (
+            sim.getRobotPose()
+        )  
+        yaw = robot_pose[1][2]
+        sim.lookAt(robot_pose[0])
         
-        setPositionToRobot(0, 0, 0, robot, params)
-        robot.smooth_tick_read_and_write(3, verbose=False)
-        print("Init position reached")
-        # You can create a graphical user interface if you want
-        # ui = display.RobotUI(robot, params)
-        keep_going = True
-        while keep_going:
-            # keep_going = ui.tick()
+        if args.mode == "direct":
 
-            # Getting the robot position and asking the camera to follow
-            robot_pose = (
-                sim.getRobotPose()
-            )  # (tuple(3), tuple(3)) -- (x,y,z), (roll, pitch, yaw)
-            yaw = robot_pose[1][2]
-            sim.lookAt(robot_pose[0])
-            
             x=0
-            z=80
-            w=80
-            h=80
-            direction= math.pi / 2
+            y=0
+            z=0
+            w=100
+            h=30
+            direction = math.pi / 2
+            direction2 = -(math.pi) 
+            direction3 =  math.pi 
 
-            avancer(x,z,h,w,direction)            
-            # tourner(x,z,h,w,direction)            
-            # circle(x,z,20)    
-            
-            if first_move :
-                robot.smooth_tick_read_and_write(3)
-                first_move = False
-            else :
-                robot.tick_read_and_write()
-            # Ticking the simulation
-            sim.tick()
-        return
-    except Exception as e:
-        track = traceback.format_exc()
-        print(track)
-    finally:
-        shutdown(None, None)
+            keys = p.getKeyboardEvents()
+            gestion_handle(keys,sim,robot,x,y,z,params,w,h,direction,direction2,direction3)
 
+        #? sim.setRobotPose([0, 0, 0.5], to_pybullet_quaternion(0, 0, 0))
 
-main()
+        if first_move :
+            robot.smooth_tick_read_and_write(3)
+            first_move = False
+        else :
+            robot.tick_read_and_write()
+        sim.tick()
+    
+except Exception as e:
+    track = traceback.format_exc()
+    print(track)
+finally:
+    shutdown(None, None)
+

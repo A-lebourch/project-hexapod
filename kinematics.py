@@ -51,7 +51,6 @@ def computeDK(
 
     return [x, y, z]
 
-
 def computeDKDetailed(
     theta1,
     theta2,
@@ -416,46 +415,6 @@ def segment(
         z = segment_z2 + (t_lin / half_duration) * (segment_z1 - segment_z2)
 
     return computeIK(x, y, z)
-
-def rotate_hexapod(rotation_angle, radius, speed):
-    
-    # Angle de rotation pour chaque groupe de pattes
-    leg_ids = [0, 1, 2, 3, 4, 5]  # Liste des identifiants des pattes
-    rotation_angle_rad = math.radians(rotation_angle)
-    rotation_angle_group = rotation_angle_rad / 2
-    # Distance entre le centre et les pattes
-    leg_distance = radius * math.sin(rotation_angle_group)   #rajouter offset = Longueur des pattes                                                      #Lancer la fonction ComputeIk en appelant triangle()
-    # Boucle principale pour le mouvement de rotation
-    t = 0
-  
-    # Boucle principale pour le mouvement de rotation
-
-    leg_ids = [0, 1, 2, 3, 4, 5]  # Liste des identifiants des pattes
-    while True:
-    # Rotation du groupe avant dans un sens
-     for leg_id in leg_ids[:3]:  # Utilisation de la liste des identifiants des pattes
-        # Calcul des coordonnées du point du triangle à un temps donné
-        x = radius * math.cos(speed * t) + leg_id * (2 * math.pi / 3) #+offset
-        y = leg_distance * math.sin(rotation_angle_group) #+offset
-        # Calcul des angles des moteurs pour atteindre les coordonnées
-        angles = triangle(x, 0, y, leg_distance, t , leg_id, 1)
-        # Déplacer la patte en utilisant les angles calculés
-        angles = computeIK(x, y, 0)
-    
-    # Rotation du groupe arrière dans l'autre sens
-     for leg_id in leg_ids[3:]:  # Utilisation de la liste des identifiants des pattes
-        # Calcul des coordonnées du point du triangle à un temps donné
-        x = radius * math.cos(speed * t) + leg_id * (2 * math.pi / 3) #+offset)
-        y = -leg_distance * math.sin(rotation_angle_group) # + offdet
-        # Calcul des angles des moteurs pour atteindre les coordonnées
-        angles = triangle(x, 0, y, leg_distance, t , leg_id, -1)
-        # Déplacer la patte en utilisant les angles calculés
-        angles = computeIK(x, y, 0)
-    
-    # Mettre à jour le temps pour le mouvement fluide
-    t += 0.01
-    # Mettre en pause pour ralentir le mouvement
-    time.sleep(0.01)
 
 
 def main():
