@@ -19,7 +19,7 @@ sim.setRobotPose([0, 0, 0.5], [0, 0, 0, 1])
 robot = SimpleRobotSimulation(sim)
 params = Parameters(
     freq=50,
-    speed=1,
+    speed=3,
     z=-110,
     travelDistancePerStep=80,   
     lateralDistance=130,
@@ -34,7 +34,7 @@ robot.enable_torque()
 
 up_pressed = False 
 keep_going = True
-toto = [0,0]
+toto = [0,0,0]
 gear = 1
 Z = 0
 sens = "inc"
@@ -44,7 +44,7 @@ w=100
 h=30
 first_move = True
 
-if args.mode == "DILLIDGAF" or args.mode == "test_pygame":
+if args.mode == "DILLIDGAF" or args.mode == "test_pygame" or args.mode == "better_arrow":
     pygame.init()
     window = pygame.display.set_mode((800, 600))
     image = pygame.image.load("effortChart.jpg")
@@ -52,6 +52,8 @@ if args.mode == "DILLIDGAF" or args.mode == "test_pygame":
     image_rect.center = (800 // 2, 600 // 2)
     mouse_down = False
     mouse_pos = [0,0]
+    value1 = 0
+    value2 = 0
     window.blit(image, image_rect)
     pygame.display.update()
 
@@ -82,8 +84,16 @@ try:
             x,z,h,w,gear=speed(keys,gear)
             button_press(keys,robot,x,z,h,w,params,direction,args.mode)
         
+        if args.mode == "better_arrow":
+            x=0
+            z=0
+            w=80
+            h=80
+            value1, value2 = DILLIDGAF(x,z,h,w,params,window, image, image_rect,robot, mouse_down, mouse_pos, args.mode, value1, value2)
+
+
         if args.mode == "DILLIDGAF":
-            mouse_down, mouse_pos = DILLIDGAF(window, image, image_rect,robot, mouse_down, mouse_pos)
+            mouse_down, mouse_pos = DILLIDGAF(x,z,h,w,params,window, image, image_rect,robot, mouse_down, mouse_pos, args.mode, value1, value2)
 
         if args.mode == "test_pygame":
             direction = math.pi / 2
@@ -91,7 +101,7 @@ try:
             z=0
             w=100
             h=30
-            up_pressed = test(robot,x,z,h,w,params,direction, up_pressed)
+            up_pressed = test_pygame(robot,x,z,h,w,params,direction, up_pressed)
         
         if args.mode == "leg":
 
@@ -108,7 +118,10 @@ try:
             direction = math.pi / 2
             keys = p.getKeyboardEvents()
             test = button_press(keys,robot,x,z,h,w,params,direction,args.mode,toto)
-            setPositionToRobot(test[0],test[1],0,robot,params,0)
+            setPositionToRobot(test[0],test[1],test[2],robot,params,0)
+
+        if args.mode == "go_to":
+            pass
 
         #? sim.setRobotPose([0, 0, 0.5], to_pybullet_quaternion(0, 0, 0))
 

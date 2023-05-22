@@ -20,19 +20,38 @@ def increment_decrement(min_value, max_value, sens, X):
             sens = "inc"
     return X, sens
 
-def DILLIDGAF(window, image, image_rect,robot, mouse_down, mouse_pos):
+def DILLIDGAF(x,z,h,w,params,window, image, image_rect,robot, mouse_down, mouse_pos, mode, value1, value2):
     for event in pygame.event.get():
         if event.type == MOUSEBUTTONDOWN and event.button == 1: 
             mouse_down = True
         elif event.type == MOUSEBUTTONUP and event.button == 1: 
             mouse_down = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_UP:
+            print("down")
+        elif event.type == pygame.KEYUP and event.key == pygame.K_UP:
+            print("up")
 
     if mouse_down:
         mouse_pos = pygame.mouse.get_pos()
         print("Position du curseur :", mouse_pos[0]-397,mouse_pos[1]-293)
+        value1 = mouse_pos[0]-397
+        value2 = mouse_pos[1]-293
+    
+    if mode == "DILLIDGAF":
+        setPositionToLeg(200,mouse_pos[0]-397,-(mouse_pos[1]-293),robot.legs[1])
+        return mouse_down, mouse_pos
+    
+    if mode == "better_arrow":
+        direction = math.atan2(value2, value1)
+        print(direction)
+        avancer(x,z,h,w,direction,params,robot)
+        return value1, value2
+    
+    if mode == "body":
+        setPositionToRobot(value1/10,value2/10,-100,robot,params,0)
 
-    setPositionToLeg(200,mouse_pos[0]-397,-(mouse_pos[1]-293),robot.legs[1])
-    return mouse_down, mouse_pos
+
+
 
 
 def speed(keys, gear):
@@ -77,7 +96,7 @@ def speed(keys, gear):
         h=30
         return x,z,h,w,gear
 
-def test(robot,x,z,h,w,params,direction, up_pressed):
+def test_pygame(robot,x,z,h,w,params,direction, up_pressed):
     for event in pygame.event.get():
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
@@ -89,8 +108,7 @@ def test(robot,x,z,h,w,params,direction, up_pressed):
     if up_pressed:
         avancer(x,z,h,w,direction,params,robot)
 
-    time.sleep(0.1)  # Adjust sleep time if needed for responsiveness
-
+    time.sleep(0.1) 
     if pygame.key.get_pressed()[pygame.K_DOWN]:
         avancer(x,z,h,w,-direction,params,robot)
 
@@ -101,7 +119,7 @@ def test(robot,x,z,h,w,params,direction, up_pressed):
         tourner(x,z,h,w,-direction,params,robot)
     return up_pressed
     
-def button_press(keys,robot,x,z,h,w,params,direction, mode,test=[0,0]):
+def button_press(keys,robot,x,z,h,w,params,direction, mode,test=[0,0,0]):
     for k,v in keys.items():
         
         if (k == p.B3G_RIGHT_ARROW ):
@@ -131,20 +149,25 @@ def button_press(keys,robot,x,z,h,w,params,direction, mode,test=[0,0]):
         if k == ord('l'):
             if mode == "arrow":
                 avancer(x,z,h,w,direction-math.pi/2,params,robot)
+            if mode == "body":   
+                test[2] += 0.5
         
         if k == ord('m'):
             if mode == "arrow":
                 avancer(x,z,h,w,direction+math.pi/2,params,robot)
+            if mode == "body":   
+                test[2] -= 0.5
 
     return test
 
 def avancer(x,z,h,w,direction,params,robot):
-    alphas1 = kinematics.triangle(-x,z,h,w,time.time(), 1, params, direction)
-    alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction)
-    alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
-    alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction)
-    alphas5 = kinematics.triangle(-x,z,h,w,time.time(), 5, params, direction)
-    alphas6 = kinematics.triangle(-x,z,h,w,time.time()+1.5, 6, params, direction)
+    duration = params.speed
+    alphas1 = kinematics.triangle(-x,z,h,w,time.time(), 1, params, direction, duration)
+    alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 2, params, direction, duration)
+    alphas3 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction, duration)
+    alphas4 = kinematics.triangle(x,z,h,w,time.time()+1.5, 4, params, direction, duration)
+    alphas5 = kinematics.triangle(-x,z,h,w,time.time(), 5, params, direction, duration)
+    alphas6 = kinematics.triangle(-x,z,h,w,time.time()+1.5, 6, params, direction, duration)
 
     setAnglesToLeg(alphas1, robot.legs[1])
     setAnglesToLeg(alphas2, robot.legs[2])
@@ -154,8 +177,9 @@ def avancer(x,z,h,w,direction,params,robot):
     setAnglesToLeg(alphas6, robot.legs[6])
 
 def tourner(x,z,h,w,direction,params,robot):
-    alphas1 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction)
-    alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 3, params, direction)
+    duration = params.speed
+    alphas1 = kinematics.triangle(x,z,h,w,time.time(), 3, params, direction, duration)
+    alphas2 = kinematics.triangle(x,z,h,w,time.time()+1.5, 3, params, direction, duration)
 
     setAnglesToLeg(alphas1, robot.legs[1])
     setAnglesToLeg(alphas2, robot.legs[2])

@@ -43,7 +43,7 @@ class Parameters:
         self.left = left
         self.right = right
         self.walkMagnitudeX = walkMagnitudeX
-        self.walkMagnitudeY = walkMagnitudeY
+        self.walkMagnitudeY = walkMagnitudeY    
         self.activateWalk = activateWalk
         # Angle between the X axis of the leg and the X axis of the robot for each leg
         self.legAngles = LEG_ANGLES

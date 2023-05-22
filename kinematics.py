@@ -338,7 +338,7 @@ def trianglePoints(x, z, h, w):
     return [[x, 0, h + z], [x, -w / 2, z], [x, w / 2, z]]
 
 
-def triangle(x, z, h, w, t, legID, params, rotation):
+def triangle(x, z, h, w, t, legID, params, rotation, duration):
     """
     Takes the geometric parameters of the triangle and the current time, gives the joint angles to draw the triangle with the tip of th leg. Format : [theta1, theta2, theta3]
     """
@@ -350,7 +350,8 @@ def triangle(x, z, h, w, t, legID, params, rotation):
     P2 = np.array(points[(int(t) + 1) % 3])
 
     # Interpolation entre les deux points
-    T = math.fmod(t, 1)
+    # print("duration = ",duration)
+    T = math.fmod(t, duration/3) 
     pos = P2 * T + (1 - T) * P1
 
     # return computeIK(pos[0], pos[1], -pos[2])
